@@ -36,7 +36,8 @@
     background: #2a241e; color: var(--txt); border: 1px solid var(--line); border-radius: 10px;
     padding: 14px 16px; font: 600 15px Inter, sans-serif; cursor: pointer; transition: border-color .15s, background .15s;
   }
-  .btn:hover { border-color: var(--gold); }
+  .btn:hover:not(:disabled) { border-color: var(--gold); }
+  .btn:disabled { opacity: .5; cursor: progress; }
   .btn:focus-visible, .sw:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   .btn .state { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; background: #3a3128; color: var(--mut); }
   .btn[aria-pressed="true"] .state { background: var(--gold); color: #1a140e; }
@@ -78,19 +79,19 @@
 
   <section>
     <h2>1 · Juego de texturas</h2>
-    <button class="btn" id="btnDesgaste" aria-pressed="false">Escudo de batalla <span class="state">Limpio</span></button>
+    <button class="btn" id="btnDesgaste" disabled aria-pressed="false">Escudo de batalla <span class="state">Limpio</span></button>
     <p class="hint">Cambia el Base Color y el Roughness de la pintura por una versión desgastada.</p>
   </section>
 
   <section>
     <h2>2 · Color del acero</h2>
-    <button class="btn" id="btnAcero">Cambiar acabado <span class="state" id="aceroNombre">Natural</span></button>
+    <button class="btn" id="btnAcero" disabled>Cambiar acabado <span class="state" id="aceroNombre">Natural</span></button>
     <div class="swatches" id="swatches"></div>
   </section>
 
   <section>
     <h2>3 · Normal map del bronce</h2>
-    <button class="btn" id="btnNormal" aria-pressed="true">Martillado del umbo <span class="state">Activado</span></button>
+    <button class="btn" id="btnNormal" disabled aria-pressed="true">Martillado del umbo <span class="state">Activado</span></button>
     <button class="link" id="btnZoom">Acercar al umbo</button>
   </section>
 
@@ -128,16 +129,17 @@
 
     // 1. Juego de texturas limpio / desgastado
     const limpio = { color: pbr.baseColorTexture.texture, mr: pbr.metallicRoughnessTexture.texture };
-    const [wColor, wMR] = await Promise.all([
+    const texturasDesgaste = Promise.all([
       mv.createTexture("texturas/pintura_desgastado_color.jpg"),
       mv.createTexture("texturas/pintura_desgastado_mr.jpg"),
     ]);
     let desgastado = false;
-    $("btnDesgaste").addEventListener("click", (e) => {
+    $("btnDesgaste").addEventListener("click", async (e) => {
       desgastado = !desgastado;
+      setPressed(e.currentTarget, desgastado, "Desgastado", "Limpio");
+      const [wColor, wMR] = await texturasDesgaste;
       pbr.baseColorTexture.setTexture(desgastado ? wColor : limpio.color);
       pbr.metallicRoughnessTexture.setTexture(desgastado ? wMR : limpio.mr);
-      setPressed(e.currentTarget, desgastado, "Desgastado", "Limpio");
     });
 
     // 2. Color del acero
@@ -157,6 +159,8 @@
     });
     $("btnAcero").addEventListener("click", () => aplicarAcero((iAcero + 1) % ACABADOS.length));
     aplicarAcero(0);
+
+    document.querySelectorAll(".btn").forEach((b) => (b.disabled = false));
 
     // 3. Normal map del bronce on/off
     const normalBronce = bronce.normalTexture.texture;
