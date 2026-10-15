@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escudo Medieval 3D</title>
+<meta name="description" content="Escudo medieval low-poly con texturas PBR, visualizado con model-viewer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+<style>
+  :root {
+    --bg: #14110e; --panel: #1e1a16; --line: #3a3128; --txt: #efe6d8; --mut: #a89a86;
+    --gold: #d6a24e; --red: #a3261d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; background: radial-gradient(ellipse at 30% 20%, #2a221b 0%, var(--bg) 60%);
+    color: var(--txt); font-family: Inter, system-ui, sans-serif;
+    display: grid; grid-template-columns: 1fr 360px;
+  }
+  model-viewer {
+    width: 100%; height: 100vh; background: transparent;
+    --poster-color: transparent; --progress-bar-color: var(--gold);
+  }
+  aside {
+    background: var(--panel); border-left: 1px solid var(--line);
+    padding: 32px 28px; display: flex; flex-direction: column; gap: 26px; overflow-y: auto; max-height: 100vh;
+  }
+  .kicker { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+  h1 { font-family: Cinzel, serif; font-weight: 800; font-size: 34px; line-height: 1.05; margin-top: 8px; }
+  .intro { color: var(--mut); font-size: 14px; line-height: 1.55; margin-top: 10px; }
+  h2 { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--mut); margin-bottom: 10px; font-weight: 600; }
+  .btn {
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: #2a241e; color: var(--txt); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; font: 600 15px Inter, sans-serif; cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .btn:hover { border-color: var(--gold); }
+  .btn:focus-visible, .sw:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .btn .state { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; background: #3a3128; color: var(--mut); }
+  .btn[aria-pressed="true"] .state { background: var(--gold); color: #1a140e; }
+  .hint { font-size: 13px; color: var(--mut); margin-top: 8px; line-height: 1.45; }
+  .swatches { display: flex; gap: 10px; margin-top: 10px; }
+  .sw {
+    flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px 6px 8px; background: #2a241e; color: var(--txt);
+    font: 500 12px Inter, sans-serif; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .sw i { width: 28px; height: 28px; border-radius: 50%; display: block; border: 2px solid rgba(255,255,255,.15); }
+  .sw[aria-pressed="true"] { border-color: var(--gold); }
+  .link { background: none; border: none; color: var(--gold); font: 500 13px Inter, sans-serif; cursor: pointer; padding: 0; margin-top: 8px; text-decoration: underline; }
+  .specs { border-top: 1px solid var(--line); padding-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .specs div { font-size: 12px; color: var(--mut); }
+  .specs b { display: block; color: var(--txt); font-size: 15px; font-weight: 600; margin-top: 2px; }
+  footer { margin-top: auto; font-size: 12px; color: var(--mut); }
+  @media (max-width: 820px) {
+    body { grid-template-columns: 1fr; }
+    model-viewer { height: 60vh; }
+    aside { border-left: none; border-top: 1px solid var(--line); max-height: none; padding: 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<model-viewer id="mv" src="escudo.glb" alt="Escudo medieval redondo de madera pintada con bandas de acero y umbo de bronce"
+  camera-controls touch-action="pan-y" shadow-intensity="1" shadow-softness="0.8"
+  environment-image="neutral" exposure="1.05" camera-orbit="20deg 80deg 110%"
+  auto-rotate auto-rotate-delay="4000" rotation-per-second="18deg" interaction-prompt="none"
+  ar ar-modes="webxr scene-viewer quick-look">
+</model-viewer>
+
+<aside>
+  <header>
+    <div class="kicker">Modelado en Tercera Dimensión</div>
+    <h1>Escudo Medieval</h1>
+    <p class="intro">Modelo low-poly con texturas PBR horneadas en Blender. Arrastra para girarlo; acércate con la rueda del mouse o pellizcando la pantalla.</p>
+  </header>
+
+  <section>
+    <h2>1 · Juego de texturas</h2>
+    <button class="btn" id="btnDesgaste" aria-pressed="false">Escudo de batalla <span class="state">Limpio</span></button>
+    <p class="hint">Cambia el Base Color y el Roughness de la pintura por una versión desgastada.</p>
+  </section>
+
+  <section>
+    <h2>2 · Color del acero</h2>
+    <button class="btn" id="btnAcero">Cambiar acabado <span class="state" id="aceroNombre">Natural</span></button>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <section>
+    <h2>3 · Normal map del bronce</h2>
+    <button class="btn" id="btnNormal" aria-pressed="true">Martillado del umbo <span class="state">Activado</span></button>
+    <button class="link" id="btnZoom">Acercar al umbo</button>
+  </section>
+
+  <section class="specs">
+    <div>Triángulos<b>2,312</b></div>
+    <div>Materiales<b>5 PBR</b></div>
+    <div>Texturas<b>1K / 512 px</b></div>
+    <div>Archivo<b>GLB</b></div>
+  </section>
+
+  <footer>Madera · Pintura · Acero · Bronce · Cuero</footer>
+</aside>
+
+<script type="module">
+  const mv = document.getElementById("mv");
+
+  // Factores de color en espacio lineal (multiplican la textura base del acero)
+  const ACABADOS = [
+    { nombre: "Natural", css: "#c9ccd1", factor: [1, 1, 1, 1] },
+    { nombre: "Pavonado", css: "#2c3441", factor: [0.12, 0.15, 0.22, 1] },
+    { nombre: "Dorado", css: "#d9a648", factor: [1.0, 0.62, 0.22, 1] },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const setPressed = (btn, on, onTxt, offTxt) => {
+    btn.setAttribute("aria-pressed", on);
+    btn.querySelector(".state").textContent = on ? onTxt : offTxt;
+  };
+
+  mv.addEventListener("load", async () => {
+    const pintura = mv.model.getMaterialByName("Pintura");
+    const acero = mv.model.getMaterialByName("Acero");
+    const bronce = mv.model.getMaterialByName("Bronce");
+    const pbr = pintura.pbrMetallicRoughness;
+
+    // 1. Juego de texturas limpio / desgastado
+    const limpio = { color: pbr.baseColorTexture.texture, mr: pbr.metallicRoughnessTexture.texture };
+    const [wColor, wMR] = await Promise.all([
+      mv.createTexture("texturas/pintura_desgastado_color.jpg"),
+      mv.createTexture("texturas/pintura_desgastado_mr.jpg"),
+    ]);
+    let desgastado = false;
+    $("btnDesgaste").addEventListener("click", (e) => {
+      desgastado = !desgastado;
+      pbr.baseColorTexture.setTexture(desgastado ? wColor : limpio.color);
+      pbr.metallicRoughnessTexture.setTexture(desgastado ? wMR : limpio.mr);
+      setPressed(e.currentTarget, desgastado, "Desgastado", "Limpio");
+    });
+
+    // 2. Color del acero
+    let iAcero = 0;
+    const aplicarAcero = (i) => {
+      iAcero = i;
+      acero.pbrMetallicRoughness.setBaseColorFactor(ACABADOS[i].factor);
+      $("aceroNombre").textContent = ACABADOS[i].nombre;
+      document.querySelectorAll(".sw").forEach((s, j) => s.setAttribute("aria-pressed", j === i));
+    };
+    ACABADOS.forEach((a, i) => {
+      const b = document.createElement("button");
+      b.className = "sw";
+      b.innerHTML = `<i style="background:${a.css}"></i>${a.nombre}`;
+      b.addEventListener("click", () => aplicarAcero(i));
+      $("swatches").append(b);
+    });
+    $("btnAcero").addEventListener("click", () => aplicarAcero((iAcero + 1) % ACABADOS.length));
+    aplicarAcero(0);
+
+    // 3. Normal map del bronce on/off
+    const normalBronce = bronce.normalTexture.texture;
+    let normalOn = true;
+    $("btnNormal").addEventListener("click", (e) => {
+      normalOn = !normalOn;
+      bronce.normalTexture.setTexture(normalOn ? normalBronce : null);
+      setPressed(e.currentTarget, normalOn, "Activado", "Desactivado");
+    });
+  });
+
+  // Acercar la cámara al umbo para apreciar el normal map
+  let cerca = false;
+  $("btnZoom").addEventListener("click", (e) => {
+    cerca = !cerca;
+    mv.autoRotate = !cerca;
+    mv.cameraTarget = cerca ? "0m 0m 0.08m" : "auto auto auto";
+    mv.cameraOrbit = cerca ? "35deg 70deg 0.6m" : "20deg 80deg 110%";
+    e.currentTarget.textContent = cerca ? "Ver escudo completo" : "Acercar al umbo";
+  });
+</script>
+</body>
+</html>
